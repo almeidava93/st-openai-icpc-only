@@ -10,4 +10,3 @@ scipy
 pyarrow
 h5py
 google-cloud-firestore
-https://github.com/almeidava93/st-openai-icpc-only/raw/main/tesauro_embeddings.h5
