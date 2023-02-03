@@ -90,7 +90,7 @@ def load_icpc_embeddings_from_firestore():
 
 @lru_cache(maxsize=None)
 def load_icpc_embeddings_from_hdf():
-    return pd.read_hdf('data\\tesauro_embeddings.h5', 'embeddings')
+    return pd.read_hdf('tesauro_embeddings.h5', 'embeddings')
 
 icpc_embeddings_df = load_icpc_embeddings_from_hdf()
 
@@ -112,8 +112,8 @@ def get_input_embedding(input):
     return input_vector
 
 tesauro_embeddings = load_icpc_embeddings_from_hdf()
-tesauro_expressions = pd.read_hdf('data\\tesauro_embeddings.h5', 'expressions')
-tesauro_codes = pd.read_hdf('data\\tesauro_embeddings.h5', 'code')
+tesauro_expressions = pd.read_hdf('tesauro_embeddings.h5', 'expressions')
+tesauro_codes = pd.read_hdf('tesauro_embeddings.h5', 'code')
 nbrs = load_KNN_model()
 
 # Functions that gets the query and database with ICPC codes and related expressions and pre-loaded KNN model and returns a results dataframne

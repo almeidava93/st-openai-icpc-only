@@ -1,3 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 data/tesauro_embeddings.h5 filter=lfs diff=lfs merge=lfs -text
+tesauro_embeddings.h5 filter=lfs diff=lfs merge=lfs -text
