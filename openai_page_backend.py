@@ -50,38 +50,18 @@ icpc_embeddings_df = load_icpc_embeddings_from_hdf()
 placeholder.success("Hurray! Everything is ready!", icon="😀")
 
 
-nbrs = load_KNN_model()
-
 
 st.header('CIAP2 e OpenAI')
 st.write('Digite abaixo a condição clínica que deseja codificar e nós encontraremos para você os melhores códigos CIAP2.')        
 st.text_input('Digite aqui o motivo de consulta', key="icpc_search_input", label_visibility='collapsed')
 if st.session_state['icpc_search_input'] != "":
-    search_term_vector = get_input_embedding(st.session_state['icpc_search_input'])
-
-    # Use the kneighbors method to get the nearest neighbors
-    distances, indices = nbrs.kneighbors([search_term_vector])
-
-    # Organizing results for visualization and grouping by code
-    results_df = pd.DataFrame(columns=['code', 'title', 'expression'])
-    for index in indices[0]:
-        icpc_code = icpc_embeddings_df.iloc[index]['CIAP2_Código1']
-        icpc_code_title = ciap_df[ciap_df["CIAP2_Código1"]==icpc_code]['titulo original'].iloc[0]
-        expression = icpc_embeddings_df.iloc[index]['Termo Português']
-        
-        row = pd.DataFrame.from_dict([{
-            'code': icpc_code,
-            'title': icpc_code_title,
-            'expression': expression
-        }])
-
-        results_df = pd.concat([results_df, row])
-
-    results_df = results_df.groupby(['code'], as_index = False, sort=False).agg({'title': 'first', 'expression': ' | '.join})
+    results_df = get_tesauro_query_results(st.session_state['icpc_search_input'])
+    #results_df = results_df.groupby(['code'], as_index = False, sort=False).agg({'title': 'first', 'expression': ' | '.join})
     st.write(f"Resultados encontrados para: **{st.session_state['icpc_search_input']}**")
-    for row in results_df.to_dict('records'):
-      with st.expander(f"__{row['code']} - {row['title']}__"):
-            st.write(f"_{row['expression']}_")
-            code_criteria = get_code_criteria(row['code'][0:3])
-            st.write(f"**criterios de inclusão:** {code_criteria['inclusion criteria']}")
-            st.write(f"**criterios de exclusão:** {code_criteria['exclusion criteria']}")
+    st.write(results_df)
+    # for row in results_df.to_dict('records'):
+    #   with st.expander(f"__{row['code']} - {row['title']}__"):
+    #         st.write(f"_{row['expression']}_")
+    #         code_criteria = get_code_criteria(row['code'][0:3])
+    #         st.write(f"**criterios de inclusão:** {code_criteria['inclusion criteria']}")
+    #         st.write(f"**criterios de exclusão:** {code_criteria['exclusion criteria']}")

@@ -2,7 +2,6 @@ tables
 pandas
 numpy
 scikit-learn
-flask
 streamlit
 openai
 matplotlib
@@ -10,4 +9,3 @@ plotly
 scipy
 pyarrow
 h5py
-gunicorn 

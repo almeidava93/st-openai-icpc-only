@@ -28,7 +28,7 @@ def load_firestore_client(service_account_info = service_account_info):
 
 firestore_client = load_firestore_client() #Carrega a conexão com a base de dados com cache.
 
-@lru_cache(maxsize=None)
+@st.experimental_memo
 def firestore_query(_firestore_client = firestore_client, field_paths = [], collection = 'tesauro'):
   #Load dataframe for code search
   firestore_collection = _firestore_client.collection(collection)
@@ -92,8 +92,10 @@ def load_icpc_embeddings_from_firestore():
 def load_icpc_embeddings_from_hdf():
     return pd.read_hdf('data\\tesauro_embeddings.h5', 'embeddings')
 
+icpc_embeddings_df = load_icpc_embeddings_from_hdf()
 
-def load_KNN_model(icpc_embeddings_df: pd.DataFrame, n_neighbors=5):
+@lru_cache(maxsize=None)
+def load_KNN_model(n_neighbors=5):
     # Initialize the NearestNeighbors class with the number of neighbors to search for
     nbrs = NearestNeighbors(n_neighbors=n_neighbors)
 
@@ -110,9 +112,9 @@ def get_input_embedding(input):
     return input_vector
 
 tesauro_embeddings = load_icpc_embeddings_from_hdf()
-tesauro_expressions = pd.read_hdf('api\\data\\tesauro_embeddings.h5', 'expressions')
-tesauro_codes = pd.read_hdf('api\\data\\tesauro_embeddings.h5', 'code')
-nbrs = load_KNN_model(tesauro_embeddings)
+tesauro_expressions = pd.read_hdf('data\\tesauro_embeddings.h5', 'expressions')
+tesauro_codes = pd.read_hdf('data\\tesauro_embeddings.h5', 'code')
+nbrs = load_KNN_model()
 
 # Functions that gets the query and database with ICPC codes and related expressions and pre-loaded KNN model and returns a results dataframne
 @lru_cache(maxsize=None)
