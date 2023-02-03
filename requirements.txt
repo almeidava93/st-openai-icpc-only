@@ -9,3 +9,4 @@ plotly
 scipy
 pyarrow
 h5py
+google-cloud-firestore

@@ -1,0 +1,5 @@
+.streamlit
+.streamlit\secrets.toml
+*.toml
+.streamlit/secrets.toml
+.streamlit/secrets.toml
