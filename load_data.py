@@ -90,7 +90,7 @@ def load_icpc_embeddings_from_firestore():
 
 @lru_cache(maxsize=None)
 def load_icpc_embeddings_from_hdf():
-    return pd.read_hdf('api\\data\\tesauro_embeddings.h5', 'embeddings')
+    return pd.read_hdf('data\\tesauro_embeddings.h5', 'embeddings')
 
 
 def load_KNN_model(icpc_embeddings_df: pd.DataFrame, n_neighbors=5):

@@ -19,23 +19,6 @@ service_account_info = st.secrets["gcp_service_account_firestore"]
 openai.api_key = st.secrets['openai']['key']
 
 
-@st.cache(hash_funcs={firestore.Client: id}, ttl=None, show_spinner=True)
-def load_firestore_client(service_account_info = service_account_info):
-  firestore_client = firestore.Client.from_service_account_info(service_account_info)
-  return firestore_client
-
-firestore_client = load_firestore_client() #Carrega a conexão com a base de dados com cache.
-
-@st.cache(hash_funcs={firestore.Client: id}, ttl=None, show_spinner=True, allow_output_mutation=True)
-def firestore_query(firestore_client = firestore_client, field_paths = [], collection = 'tesauro'):
-  #Load dataframe for code search
-  firestore_collection = firestore_client.collection(collection)
-  filtered_collection = firestore_collection.select(field_paths)#Fields containing useful data for search engine
-  filtered_collection = filtered_collection.get() #Returns a list of document snapshots, from which data can be retrieved
-  filtered_collection_dict = [doc.to_dict() for doc in filtered_collection] #Returns list of dictionaries 
-  filtered_collection_dataframe = pd.DataFrame.from_records(filtered_collection_dict) #Returns dataframe
-  return filtered_collection_dataframe
-
 @st.experimental_memo
 def get_code_criteria(code: str) -> dict[str, str]:
   code_criteria = ciap_criteria[ciap_criteria['code']==code].iloc[0].to_dict()
@@ -60,54 +43,15 @@ handler.setFormatter(formatter)
 # add handler to logger
 logger.addHandler(handler)
 
-def iterate(collection_name, batch_size=1000, batch_number=0, cursor=None):
-    query = firestore_client.collection(collection_name).limit(batch_size).order_by('__name__')
-    logger.info(f"Currently on batch number {batch_number}")
-    if cursor:
-        query = query.start_after(cursor)
 
-    for doc in query.stream():
-        yield doc
-    
-    if 'doc' in locals():
-        batch_number += 1
-        yield from iterate(collection_name, batch_size, batch_number=batch_number, cursor=doc)
-
-@st.experimental_memo(show_spinner=False, suppress_st_warning=True, experimental_allow_widgets=True)
-def load_icpc_embeddings():    
-    logger.info("Preparing generator...")
-    docs = iterate("expressions_embeddings_icpc")
-    
-    logger.info(f"Retrieving and converting embeddings query to a list of python dictionaries...")
-    docs_dict = [doc.to_dict() for doc in tqdm(docs)] #Returns list of dictionaries 
-
-    logger.info("Converting list of dictionaries containing embeddings to a DataFrame...")
-    docs_df = pd.DataFrame.from_records(docs_dict) #Returns dataframe
-    
-    logger.info("ICPC embeddings DataFrame is ready!")
-    return docs_df
 
 placeholder.info(f"We're preparing everything for you. Be patient. This can take minutes, but it's just for the first page load :)", icon='🤖')
-icpc_embeddings_df = load_icpc_embeddings()
+icpc_embeddings_df = load_icpc_embeddings_from_hdf()
 placeholder.success("Hurray! Everything is ready!", icon="😀")
 
-@st.experimental_singleton
-def load_KNN_model():
-    # Initialize the NearestNeighbors class with the number of neighbors to search for
-    nbrs = NearestNeighbors(n_neighbors=5)
-
-    # Fit the data to the NearestNeighbors class
-    embeddings = np.vstack(icpc_embeddings_df['similarities'].to_list())
-    nbrs.fit(embeddings)
-
-    return nbrs
 
 nbrs = load_KNN_model()
 
-@st.experimental_memo
-def get_input_embedding(input):
-    input_vector = get_embedding(input, engine="text-embedding-ada-002")
-    return input_vector
 
 st.header('CIAP2 e OpenAI')
 st.write('Digite abaixo a condição clínica que deseja codificar e nós encontraremos para você os melhores códigos CIAP2.')        
